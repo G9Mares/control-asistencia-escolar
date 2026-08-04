@@ -1,0 +1,9 @@
+services:
+  control-asistencia-escolar:
+    build:
+      context: .
+    image: control-asistencia-escolar:latest
+    container_name: control-asistencia-escolar
+    ports:
+      - "80:80"
+    restart: unless-stopped
