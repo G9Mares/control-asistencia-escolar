@@ -1,0 +1,41 @@
+<div class="layout" [class.layout--menu-abierto]="menuAbierto()">
+  <header class="encabezado-movil">
+    <button class="boton-menu" type="button" (click)="alternarMenu()" [attr.aria-expanded]="menuAbierto()" aria-controls="navegacion-principal">
+      <span aria-hidden="true">☰</span><span class="sr-only"> Abrir menú</span>
+    </button>
+    <div class="encabezado-movil__vista">
+      <strong>{{ titulo() }}</strong>
+      <span>{{ usuario()?.nombreRol ?? 'Sesión no iniciada' }}</span>
+    </div>
+  </header>
+
+  @if (menuAbierto()) {
+    <button class="velo-menu" type="button" aria-label="Cerrar menú" (click)="cerrarMenu()"></button>
+  }
+
+  <aside class="panel-lateral" id="navegacion-principal">
+    <div class="marca">
+      <span class="marca__nombre">Registro escolar</span>
+      <span class="marca__descripcion">Control de asistencia</span>
+    </div>
+
+    <nav class="navegacion" aria-label="Navegación principal">
+      @if (usuario()?.rol !== 'direccion') {
+        <a routerLink="/asistencias" routerLinkActive="activa" (click)="cerrarMenu()">Asistencias</a>
+      }
+      @if (usuario()?.rol === 'direccion') {
+        <a routerLink="/dashboard" routerLinkActive="activa" (click)="cerrarMenu()">Dashboard</a>
+      }
+    </nav>
+
+    <div class="sesion">
+      <span class="sesion__rol">{{ usuario()?.nombreRol ?? 'Sesión no iniciada' }}</span>
+      <strong class="sesion__nombre">{{ usuario()?.nombre ?? 'Usuario demo' }}</strong>
+      <button class="boton-salir" type="button" (click)="salir()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="contenido">
+    <div class="contenido__interior"><ng-content /></div>
+  </main>
+</div>

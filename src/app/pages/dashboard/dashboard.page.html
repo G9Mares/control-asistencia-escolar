@@ -1,0 +1,124 @@
+<app-admin-layout titulo="Dashboard">
+  @if (esDireccion()) {
+    <section class="encabezado" aria-labelledby="titulo-dashboard">
+      <div>
+        <p class="eyebrow">Consulta institucional</p>
+        <h1 id="titulo-dashboard">Resumen de asistencia</h1>
+        <p>Indicadores de {{ etiquetaMes }}. Esta vista es solo de lectura.</p>
+      </div>
+      <span class="lectura"><span aria-hidden="true">◉</span> Solo lectura</span>
+    </section>
+
+    <section class="metricas-principales" aria-label="Métricas principales">
+      <article class="tarjeta-metrica">
+        <span>Asistencia general</span>
+        <strong>{{ asistenciaGeneral() }}%</strong>
+        <p>Promedio de los grupos registrados.</p>
+      </article>
+      <article class="tarjeta-metrica">
+        <span>Grupos monitoreados</span>
+        <strong>{{ resumenPorGrupo().length }}</strong>
+        <p>Resumen mensual disponible.</p>
+      </article>
+      <article class="tarjeta-metrica tarjeta-metrica--alerta">
+        <span>Alertas bajo 80 %</span>
+        <strong>{{ alertasBajo80().length }}</strong>
+        <p>Estudiantes que requieren seguimiento.</p>
+      </article>
+    </section>
+
+    <section class="panel" aria-labelledby="titulo-grupos">
+      <div class="panel__encabezado">
+        <div>
+          <p class="eyebrow">Por grupo</p>
+          <h2 id="titulo-grupos">Resumen de asistencia</h2>
+        </div>
+        <span>Periodo mensual</span>
+      </div>
+      <div class="lista-grupos">
+        @for (resumen of resumenPorGrupo(); track resumen.grupo.id) {
+          <article class="fila-grupo">
+            <div>
+              <strong>{{ resumen.grupo.nombre }}</strong>
+              <span>{{ resumen.grupo.grado }} · {{ resumen.grupo.turno }}</span>
+            </div>
+            <div class="fila-grupo__datos">
+              <span><strong>{{ resumen.metrica.asistencia }}%</strong> asistencia</span>
+              <span>{{ resumen.metrica.faltasSinJustificar }} faltas sin justificar</span>
+              <span>{{ resumen.metrica.justificantes }} justificantes</span>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="panel-conjunto" aria-label="Rankings mensuales">
+      <article class="panel panel--mitad">
+        <div class="panel__encabezado">
+          <div>
+            <p class="eyebrow">Seguimiento</p>
+            <h2>Más faltas sin justificar</h2>
+          </div>
+          <span>Top 5</span>
+        </div>
+        <ol class="ranking">
+          @for (item of rankingFaltas(); track item.estudiante.id; let indice = $index) {
+            <li>
+              <span class="ranking__posicion">{{ indice + 1 }}</span>
+              <span class="ranking__persona"><strong>{{ item.estudiante.nombre }}</strong><span>{{ item.grupo }}</span></span>
+              <strong class="ranking__cantidad">{{ item.cantidad }} <span>faltas</span></strong>
+            </li>
+          }
+        </ol>
+      </article>
+
+      <article class="panel panel--mitad">
+        <div class="panel__encabezado">
+          <div>
+            <p class="eyebrow">Seguimiento</p>
+            <h2>Más justificantes</h2>
+          </div>
+          <span>Top 5</span>
+        </div>
+        <ol class="ranking">
+          @for (item of rankingJustificantes(); track item.estudiante.id; let indice = $index) {
+            <li>
+              <span class="ranking__posicion">{{ indice + 1 }}</span>
+              <span class="ranking__persona"><strong>{{ item.estudiante.nombre }}</strong><span>{{ item.grupo }}</span></span>
+              <strong class="ranking__cantidad">{{ item.cantidad }} <span>justificantes</span></strong>
+            </li>
+          }
+        </ol>
+      </article>
+    </section>
+
+    <section class="panel panel--alertas" aria-labelledby="titulo-alertas">
+      <div class="panel__encabezado">
+        <div>
+          <p class="eyebrow">Atención requerida</p>
+          <h2 id="titulo-alertas">Asistencia mensual debajo del 80 %</h2>
+        </div>
+        <span>{{ alertasBajo80().length }} alertas</span>
+      </div>
+      @if (alertasBajo80().length) {
+        <div class="alertas">
+          @for (estudiante of alertasBajo80(); track estudiante.id) {
+            <article>
+              <strong>{{ estudiante.nombre }}</strong>
+              <span>{{ estudiante.porcentajeMensual }} % mensual · {{ resumenPorGrupo().find((resumen) => resumen.grupo.id === estudiante.grupoId)?.grupo?.nombre }}</span>
+              <p><span aria-hidden="true">!</span> Requiere seguimiento académico o social.</p>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="sin-alertas">No hay estudiantes debajo del umbral definido.</p>
+      }
+    </section>
+  } @else {
+    <section class="acceso-restringido">
+      <p class="eyebrow">Acceso restringido</p>
+      <h1>Dashboard</h1>
+      <p>Esta consulta está disponible únicamente para el rol Dirección.</p>
+    </section>
+  }
+</app-admin-layout>

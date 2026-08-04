@@ -1,0 +1,103 @@
+:host { display: block; }
+
+.acceso {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100dvh;
+  padding: 1.5rem;
+  background: #f5f7f9;
+}
+
+.acceso__introduccion { padding-top: 1.5rem; }
+
+.acceso__marca,
+.acceso__eyebrow {
+  margin: 0 0 .5rem;
+  color: #526273;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+h1, h2 { margin: 0; color: #172231; }
+h1 { font-size: clamp(2rem, 8vw, 3rem); line-height: 1.05; }
+h2 { font-size: 1.35rem; }
+
+.acceso__descripcion,
+.acceso__ayuda {
+  margin: .75rem 0 0;
+  color: #596b7c;
+  line-height: 1.5;
+}
+
+.acceso__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid #d7dfe7;
+  border-radius: .75rem;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(23 34 49 / 7%);
+}
+
+.acceso__ayuda { font-size: .9rem; }
+
+.acceso__roles {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.rol-demo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  min-height: 4.5rem;
+  padding: .75rem;
+  border: 1px solid #cbd5df;
+  border-radius: .5rem;
+  color: #172231;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+}
+
+.rol-demo:hover,
+.rol-demo:focus-visible {
+  border-color: #2468a2;
+  background: #f2f8fc;
+  outline: 3px solid transparent;
+}
+
+.rol-demo__inicial {
+  display: inline-flex;
+  flex: 0 0 2.35rem;
+  align-items: center;
+  justify-content: center;
+  height: 2.35rem;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  background: #234b6b;
+}
+
+.rol-demo__contenido {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.rol-demo__contenido > span { color: #637587; font-size: .85rem; }
+.rol-demo__accion { color: #185c96; font-size: .85rem; font-weight: 700; white-space: nowrap; }
+
+@media (min-width: 768px) {
+  .acceso { align-items: center; justify-content: center; padding: 3rem; }
+  .acceso__introduccion, .acceso__tarjeta { width: min(100%, 42rem); }
+  .acceso__introduccion { padding-top: 0; }
+  .acceso__tarjeta { padding: 2rem; }
+}

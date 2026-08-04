@@ -1,0 +1,28 @@
+<main class="acceso">
+  <section class="acceso__introduccion" aria-labelledby="titulo-acceso">
+    <p class="acceso__marca">Registro escolar</p>
+    <h1 id="titulo-acceso">Control de asistencia</h1>
+    <p class="acceso__descripcion">Selecciona un perfil demo para ingresar al prototipo.</p>
+  </section>
+
+  <section class="acceso__tarjeta" aria-labelledby="titulo-perfiles">
+    <div>
+      <p class="acceso__eyebrow">Acceso de demostración</p>
+      <h2 id="titulo-perfiles">Elige tu rol</h2>
+      <p class="acceso__ayuda">No necesitas contraseña. Los cambios se conservan solo durante esta sesión del navegador.</p>
+    </div>
+
+    <div class="acceso__roles">
+      @for (usuario of usuarios(); track usuario.id) {
+        <button class="rol-demo" type="button" (click)="acceder(usuario)">
+          <span class="rol-demo__inicial" aria-hidden="true">{{ usuario.nombre.charAt(0) }}</span>
+          <span class="rol-demo__contenido">
+            <strong>{{ usuario.nombreRol }}</strong>
+            <span>{{ usuario.nombre }}</span>
+          </span>
+          <span class="rol-demo__accion">Ingresar <span aria-hidden="true">→</span></span>
+        </button>
+      }
+    </div>
+  </section>
+</main>

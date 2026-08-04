@@ -1,0 +1,265 @@
+<app-admin-layout titulo="Asistencias">
+  @if (esAsistenteDireccion()) {
+    <section class="encabezado-vista" aria-labelledby="titulo-asistencias">
+      <div>
+        <p class="eyebrow">Registro diario</p>
+        <h1 id="titulo-asistencias">Control de asistencias</h1>
+        <p>Consulta todos los grupos y actualiza únicamente las asistencias sin justificante.</p>
+      </div>
+    </section>
+
+    <section class="filtros" aria-label="Filtros de asistencias">
+      <label>
+        <span>Grupo</span>
+        <select [ngModel]="grupoSeleccionado()" (ngModelChange)="actualizarGrupo($event)">
+          <option value="todos">Todos los grupos</option>
+          @for (grupo of grupos(); track grupo.id) {
+            <option [value]="grupo.id">{{ grupo.nombre }} · {{ grupo.turno }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Fecha</span>
+        <input type="date" [max]="fechaMaxima" [ngModel]="fechaSeleccionada()" (ngModelChange)="actualizarFecha($event)" />
+      </label>
+    </section>
+
+    <p class="resultado">{{ registrosFiltrados().length }} estudiantes encontrados</p>
+
+    <section class="lista-movil" aria-label="Estudiantes y asistencia">
+      @for (item of registrosFiltrados(); track item.estudiante.id) {
+        <article class="tarjeta-estudiante">
+          <div class="tarjeta-estudiante__encabezado">
+            <div>
+              <h2>{{ item.estudiante.nombre }}</h2>
+              <p>{{ item.grupo.nombre }} · {{ item.grupo.turno }}</p>
+            </div>
+            <span class="estado estado--{{ item.estado }}"><span aria-hidden="true">●</span> {{ textoEstado(item.estado) }}</span>
+          </div>
+          @if (leyenda(item); as leyenda) { <p class="leyenda">{{ leyenda }}</p> }
+          @if (item.registro?.actualizadoPor) { <p class="actualizacion">Actualizó: {{ item.registro?.actualizadoPor }} · {{ item.registro?.actualizadoEn }}</p> }
+          @if (item.justificante) {
+            <p class="bloqueo">Acción bloqueada: existe un justificante aplicado.</p>
+          }
+          <div class="acciones">
+            @if (item.estado === 'presente') {
+              <button class="boton boton--secundario" type="button" (click)="quitarAsistencia(item)">Quitar asistencia</button>
+            } @else if (puedeMarcar(item)) {
+              <button class="boton" type="button" (click)="marcarAsistencia(item)">Marcar presente</button>
+            } @else if (item.justificante) {
+              <button class="boton boton--bloqueado" type="button" disabled>Asistencia bloqueada</button>
+            }
+          </div>
+        </article>
+      }
+    </section>
+
+    <div class="tabla-contenedor">
+      <table>
+        <caption class="sr-only">Listado de estudiantes filtrado</caption>
+        <thead><tr><th>Estudiante</th><th>Grupo</th><th>Estado</th><th>Detalle</th><th>Actualización</th><th>Acciones</th></tr></thead>
+        <tbody>
+          @for (item of registrosFiltrados(); track item.estudiante.id) {
+            <tr>
+              <td><strong>{{ item.estudiante.nombre }}</strong></td>
+              <td>{{ item.grupo.nombre }}</td>
+              <td><span class="estado estado--{{ item.estado }}"><span aria-hidden="true">●</span> {{ textoEstado(item.estado) }}</span></td>
+              <td>
+                @if (leyenda(item); as leyenda) { <span>{{ leyenda }}</span> }
+                @if (item.justificante) { <small class="bloqueo">Acción bloqueada por justificante.</small> }
+              </td>
+              <td>{{ item.registro?.actualizadoPor ? item.registro?.actualizadoPor + ' · ' + item.registro?.actualizadoEn : 'Sin actualización' }}</td>
+              <td>
+                @if (item.estado === 'presente') {
+                  <button class="boton boton--secundario" type="button" (click)="quitarAsistencia(item)">Quitar asistencia</button>
+                } @else if (puedeMarcar(item)) {
+                  <button class="boton" type="button" (click)="marcarAsistencia(item)">Marcar presente</button>
+                } @else if (item.justificante) {
+                  <button class="boton boton--bloqueado" type="button" disabled>Bloqueada</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (esTrabajoSocial()) {
+    <section class="encabezado-vista" aria-labelledby="titulo-asistencias-social">
+      <div>
+        <p class="eyebrow">Seguimiento estudiantil</p>
+        <h1 id="titulo-asistencias-social">Asistencias</h1>
+        <p>Selecciona un estudiante para registrar incidencias o generar un justificante.</p>
+      </div>
+    </section>
+
+    <section class="filtros" aria-label="Filtros de asistencias">
+      <label>
+        <span>Grupo</span>
+        <select [ngModel]="grupoSeleccionado()" (ngModelChange)="actualizarGrupo($event)">
+          <option value="todos">Todos los grupos</option>
+          @for (grupo of grupos(); track grupo.id) {
+            <option [value]="grupo.id">{{ grupo.nombre }} · {{ grupo.turno }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Fecha</span>
+        <input type="date" [ngModel]="fechaSeleccionada()" (ngModelChange)="actualizarFecha($event)" />
+      </label>
+    </section>
+
+    <div class="seleccion-resumen" aria-live="polite">
+      @if (estudianteSeleccionado(); as seleccionado) {
+        <strong>Estudiante seleccionado: {{ seleccionado.estudiante.nombre }}</strong>
+        <span>{{ seleccionado.grupo.nombre }} · {{ textoEstado(seleccionado.estado) }}</span>
+      } @else {
+        <span>Selecciona un estudiante para habilitar las acciones.</span>
+      }
+    </div>
+
+    <section class="lista-movil lista-movil--social" aria-label="Seleccionar estudiante">
+      @for (item of registrosFiltrados(); track item.estudiante.id) {
+        <button class="tarjeta-estudiante tarjeta-seleccion" type="button" [class.tarjeta-seleccion--activa]="esEstudianteSeleccionado(item)" [attr.aria-pressed]="esEstudianteSeleccionado(item)" (click)="seleccionarEstudiante(item)">
+          <span class="tarjeta-estudiante__encabezado">
+            <span>
+              <strong>{{ item.estudiante.nombre }}</strong>
+              <span>{{ item.grupo.nombre }} · {{ item.grupo.turno }}</span>
+            </span>
+            <span class="estado estado--{{ item.estado }}"><span aria-hidden="true">●</span> {{ textoEstado(item.estado) }}</span>
+          </span>
+          @if (leyenda(item); as leyenda) { <span class="leyenda">{{ leyenda }}</span> }
+          <span class="seleccionar-texto">{{ esEstudianteSeleccionado(item) ? 'Seleccionado' : 'Seleccionar estudiante' }}</span>
+        </button>
+      }
+    </section>
+
+    <div class="tabla-contenedor tabla-contenedor--social">
+      <table>
+        <caption class="sr-only">Listado de estudiantes para seguimiento de trabajo social</caption>
+        <thead><tr><th>Estudiante</th><th>Grupo</th><th>Estado</th><th>Detalle</th><th>Selección</th></tr></thead>
+        <tbody>
+          @for (item of registrosFiltrados(); track item.estudiante.id) {
+            <tr [class.fila-seleccionada]="esEstudianteSeleccionado(item)">
+              <td><strong>{{ item.estudiante.nombre }}</strong></td>
+              <td>{{ item.grupo.nombre }}</td>
+              <td><span class="estado estado--{{ item.estado }}"><span aria-hidden="true">●</span> {{ textoEstado(item.estado) }}</span></td>
+              <td>{{ leyenda(item) ?? 'Sin incidencia o justificante' }}</td>
+              <td><button class="boton boton--secundario" type="button" (click)="seleccionarEstudiante(item)">{{ esEstudianteSeleccionado(item) ? 'Seleccionado' : 'Seleccionar' }}</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <section class="acciones-social-escritorio" aria-label="Acciones del estudiante seleccionado">
+      @if (estudianteSeleccionado(); as seleccionado) {
+        <div>
+          <strong>Acciones para {{ seleccionado.estudiante.nombre }}</strong>
+          <span>Solo puedes gestionar una persona a la vez.</span>
+        </div>
+        <div class="acciones">
+          <button class="boton boton--secundario" type="button" (click)="abrirAccion('incidencia')">Registrar incidencia</button>
+          <button class="boton" type="button" (click)="abrirAccion('justificante')">Generar justificante</button>
+        </div>
+      } @else {
+        <span>Selecciona un estudiante para habilitar las acciones.</span>
+      }
+    </section>
+
+    @if (estudianteSeleccionado(); as seleccionado) {
+      <section class="barra-acciones-movil" aria-label="Acciones para estudiante seleccionado">
+        <span>{{ seleccionado.estudiante.nombre }}</span>
+        <div class="acciones">
+          <button class="boton boton--secundario" type="button" (click)="abrirAccion('incidencia')">Registrar incidencia</button>
+          <button class="boton" type="button" (click)="abrirAccion('justificante')">Justificante</button>
+        </div>
+      </section>
+    }
+
+    @if (accionAbierta(); as accion) {
+      <div class="fondo-modal" (click)="cerrarAccion()">
+        <section class="panel-accion" role="dialog" aria-modal="true" [attr.aria-labelledby]="accion + '-titulo'" (click)="$event.stopPropagation()">
+          <div class="panel-accion__encabezado">
+            <div>
+              <p class="eyebrow">Trabajo social</p>
+              <h2 [id]="accion + '-titulo'">{{ accion === 'incidencia' ? 'Registrar entrada tardía o salida anticipada' : 'Generar justificante' }}</h2>
+            </div>
+            <button class="cerrar-panel" type="button" (click)="cerrarAccion()" aria-label="Cerrar">×</button>
+          </div>
+          <p>Acción para <strong>{{ estudianteSeleccionado()?.estudiante?.nombre }}</strong>.</p>
+          @if (accion === 'incidencia') {
+            <form class="formulario" (ngSubmit)="guardarIncidencia()">
+              <label>
+                <span>Tipo de incidencia</span>
+                <select name="tipoIncidencia" [(ngModel)]="formularioIncidencia.tipo">
+                  <option value="entrada_tardia">Entrada tardía</option>
+                  <option value="salida_anticipada">Salida anticipada</option>
+                </select>
+              </label>
+              <label>
+                <span>Hora correspondiente</span>
+                <input type="time" name="horaIncidencia" [(ngModel)]="formularioIncidencia.hora" />
+              </label>
+              <label>
+                <span>Motivo</span>
+                <input type="text" name="motivoIncidencia" [(ngModel)]="formularioIncidencia.motivo" placeholder="Ej. Transporte" />
+              </label>
+              <label>
+                <span>Descripción</span>
+                <textarea name="descripcionIncidencia" [(ngModel)]="formularioIncidencia.descripcion" rows="3" placeholder="Describe brevemente la incidencia."></textarea>
+              </label>
+              @if (errorFormulario()) { <p class="error-formulario" role="alert">{{ errorFormulario() }}</p> }
+              <button class="boton" type="submit">Guardar incidencia</button>
+            </form>
+          } @else {
+            <form class="formulario" (ngSubmit)="guardarJustificante()">
+              <label>
+                <span>Tipo de justificante</span>
+                <select name="tipoJustificante" [(ngModel)]="formularioJustificante.tipo">
+                  <option value="Médico">Médico</option>
+                  <option value="Familiar">Familiar</option>
+                  <option value="Institucional">Institucional</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </label>
+              <div class="formulario__fechas">
+                <label>
+                  <span>Fecha de inicio</span>
+                  <input type="date" name="fechaInicio" [(ngModel)]="formularioJustificante.fechaInicio" />
+                </label>
+                <label>
+                  <span>Fecha de fin</span>
+                  <input type="date" name="fechaFin" [(ngModel)]="formularioJustificante.fechaFin" />
+                </label>
+              </div>
+              <label>
+                <span>Motivo</span>
+                <input type="text" name="motivoJustificante" [(ngModel)]="formularioJustificante.motivo" placeholder="Ej. Consulta médica" />
+              </label>
+              <label>
+                <span>Descripción</span>
+                <textarea name="descripcionJustificante" [(ngModel)]="formularioJustificante.descripcion" rows="3" placeholder="Describe el justificante."></textarea>
+              </label>
+              <label class="campo-archivo">
+                <span>Adjuntar comprobante (opcional)</span>
+                <input type="file" (change)="seleccionarComprobante($event)" />
+              </label>
+              @if (nombreComprobante) { <p class="archivo-seleccionado">Archivo seleccionado: {{ nombreComprobante }}</p> }
+              @if (errorFormulario()) { <p class="error-formulario" role="alert">{{ errorFormulario() }}</p> }
+              <button class="boton" type="submit">Generar justificante</button>
+            </form>
+          }
+        </section>
+      </div>
+    }
+    @if (mensajeConfirmacion()) {
+      <p class="notificacion" role="status">{{ mensajeConfirmacion() }}</p>
+    }
+  } @else {
+    <section class="acceso-restringido">
+      <p class="eyebrow">Vista en preparación</p>
+      <h1>Asistencias</h1>
+      <p>Los controles correspondientes a tu rol se habilitarán en la siguiente etapa.</p>
+    </section>
+  }
+</app-admin-layout>
